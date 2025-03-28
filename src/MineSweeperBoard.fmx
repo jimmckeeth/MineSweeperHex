@@ -1,0 +1,32 @@
+object Form31: TForm31
+  Left = 0
+  Top = 0
+  Caption = 'Form31'
+  ClientHeight = 514
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object SkPaintBox1: TSkPaintBox
+    Align = Client
+    HitTest = True
+    Margins.Left = 5.000000000000000000
+    Margins.Top = 5.000000000000000000
+    Margins.Right = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Size.Width = 630.000000000000000000
+    Size.Height = 504.000000000000000000
+    Size.PlatformDefault = False
+    OnClick = SkPaintBox1Click
+    OnDblClick = SkPaintBox1DblClick
+    OnMouseDown = SkPaintBox1MouseDown
+    OnMouseMove = SkPaintBox1MouseMove
+    OnMouseUp = SkPaintBox1MouseUp
+    OnResize = SkPaintBox1Resize
+    OnDraw = SkPaintBox1Draw
+  end
+end
