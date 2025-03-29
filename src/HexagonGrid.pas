@@ -30,6 +30,7 @@ type
     procedure CalculateNearbyMines;
     function GetNeighbors(const AIndex: Integer): TArray<Integer>;
     procedure PlaceMines(const AFirstClickIndex: Integer);
+    function GetFlagCount: Integer;
   public
     constructor Create(const AGridSize: Integer);
     procedure UpdateSize(const AWidth, AHeight: Single);
@@ -42,6 +43,7 @@ type
     property CellSize: Single read FCellSize;
     property XOffset: Single read FXOffset;
     property YOffset: Single read FYOffset;
+    property FlagCount: Integer read GetFlagCount;
     property Hexagons: THexagonInfoArray read FHexagons;
     property MineCount: Integer read FMineCount write FMineCount;
   end;
@@ -137,6 +139,14 @@ begin
     if Path.Contains(X, Y) then
       Exit(I);
   end;
+end;
+
+function THexagonGrid.GetFlagCount: Integer;
+begin
+  Result := 0;
+  for var i := 0 to High(FHexagons) do
+    if FHexagons[i].IsFlagged then
+      Inc(Result);
 end;
 
 function THexagonGrid.GetNeighbors(const AIndex: Integer): TArray<Integer>;

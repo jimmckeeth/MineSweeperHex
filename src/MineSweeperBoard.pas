@@ -5,11 +5,13 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, System.Math,
-  System.Skia, FMX.Skia, System.UIConsts, HexagonGrid;
+  System.Skia, FMX.Skia, System.UIConsts, HexagonGrid,
+  FMX.Controls.Presentation, FMX.StdCtrls;
 
 type
   TForm31 = class(TForm)
     SkPaintBox1: TSkPaintBox;
+    lblStatus: TLabel;
     procedure SkPaintBox1Draw(ASender: TObject; const ACanvas: ISkCanvas;
       const ADest: TRectF; const AOpacity: Single);
     procedure FormCreate(Sender: TObject);
@@ -203,6 +205,7 @@ begin
     end;
     SkPaintBox1.Redraw;
   end;
+  lblStatus.Text := Format('Hex Mine: %d found out of %d',[FHexGrid.FlagCount, FHexGrid.MineCount]);
 end;
 
 procedure TForm31.SkPaintBox1Resize(Sender: TObject);
