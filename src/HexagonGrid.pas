@@ -34,7 +34,8 @@ type
     constructor Create(const AGridSize: Integer);
     procedure UpdateSize(const AWidth, AHeight: Single);
     function FindHexagonAt(const X, Y: Single): Integer;
-    function RevealCell(const AIndex: Integer): Boolean; // Returns True if mine hit
+    function RevealCell(const AIndex: Integer): Boolean;
+      // Returns True if mine hit
     procedure FlagCell(const AIndex: Integer);
     function CheckWin: Boolean;
     property GridSize: Integer read FGridSize;
@@ -49,7 +50,7 @@ implementation
 
 { THexagonInfo }
 
-uses 
+uses
   System.Skia;
 
 procedure THexagonInfo.CalculatePoints(const ACellSize: Single);
@@ -85,16 +86,18 @@ begin
   for Y := 0 to FGridSize - 1 do
     for X := 0 to FGridSize - 1 do
     begin
-      if (X mod 2 = 1) and (Y >= FGridSize-1) then
+      if (X mod 2 = 1) and (Y >= FGridSize - 1) then
         Continue;
-        
+
       FHexagons[Index].Column := X;
       FHexagons[Index].Row := Y;
       FHexagons[Index].Center.X := X * FCellSize * 1.5 + FXOffset;
-      FHexagons[Index].Center.Y := Y * FCellSize * Sqrt(3) + FYOffset + FCellSize * Sqrt(3)/2;
+      FHexagons[Index].Center.Y := Y * FCellSize * Sqrt(3) + FYOffset + FCellSize
+        * Sqrt(3) / 2;
       if X mod 2 = 1 then
-        FHexagons[Index].Center.Y := FHexagons[Index].Center.Y + FCellSize * Sqrt(3)/2;
-        
+        FHexagons[Index].Center.Y := FHexagons[Index].Center.Y + FCellSize *
+          Sqrt(3) / 2;
+
       FHexagons[Index].CalculatePoints(FCellSize);
       Inc(Index);
     end;
@@ -102,18 +105,16 @@ begin
 end;
 
 procedure THexagonGrid.UpdateSize(const AWidth, AHeight: Single);
-const 
-  PADDING = 0;
 var
   HexWidth, HexHeight: Single;
 begin
-  HexWidth := (AWidth - 2 * PADDING) / (FGridSize * 1.5 + 0.5);
-  HexHeight := (AHeight - 2 * PADDING) / ((FGridSize * 2) * 0.866);
+  HexWidth := (AWidth - 2) / (FGridSize * 1.5 + 0.5);
+  HexHeight := (AHeight - 2) / ((FGridSize * 2) * 0.866);
   FCellSize := Min(HexWidth, HexHeight);
-  
-  FXOffset := (AWidth - (FGridSize * FCellSize * 1.5)) / 2 + FCellSize/4*3;
+
+  FXOffset := (AWidth - (FGridSize * FCellSize * 1.5)) / 2 + FCellSize / 4 * 3;
   FYOffset := (AHeight - (FGridSize * FCellSize * Sqrt(3))) / 2;
-  
+
   CalculateHexagons;
 end;
 
@@ -132,7 +133,7 @@ begin
       PathBuilder.LineTo(FHexagons[I].Points[J].X, FHexagons[I].Points[J].Y);
     PathBuilder.Close;
     Path := PathBuilder.Detach;
-    
+
     if Path.Contains(X, Y) then
       Exit(I);
   end;
@@ -147,7 +148,7 @@ begin
   Col := FHexagons[AIndex].Column;
   Row := FHexagons[AIndex].Row;
   SetLength(Result, 0);
-  
+
   // For even columns
   if Col mod 2 = 0 then
   begin
@@ -169,10 +170,10 @@ begin
   begin
     NewCol := Col + DirX[I];
     NewRow := Row + DirY[I];
-    
+
     if (NewCol >= 0) and (NewCol < FGridSize) and
-       (NewRow >= 0) and (NewRow < FGridSize) and
-       not ((NewCol mod 2 = 1) and (NewRow >= FGridSize-1)) then
+      (NewRow >= 0) and (NewRow < FGridSize) and
+      not ((NewCol mod 2 = 1) and (NewRow >= FGridSize - 1)) then
     begin
       // Find the index in the FHexagons array that matches these coordinates
       for var J := 0 to High(FHexagons) do
@@ -211,19 +212,19 @@ begin
       AvailableCells[CellIndex] := I;
       Inc(CellIndex);
     end;
-    
+
   // Place mines randomly in remaining cells
   for I := 1 to FMineCount do
   begin
     if Length(AvailableCells) = 1 then
-       Break;  // Safety check in case we run out of available cells
-            
+      Break; // Safety check in case we run out of available cells
+
     RandIndex := Random(Length(AvailableCells));
     CellIndex := AvailableCells[RandIndex];
     FHexagons[CellIndex].HasMine := True;
     Delete(AvailableCells, RandIndex, 1);
   end;
-    
+
   CalculateNearbyMines;
 end;
 
@@ -271,7 +272,8 @@ begin
           RevealCell(Neighbors[I]);
     end;
   end
-    else Result := False;
+  else
+    Result := False;
 end;
 
 procedure THexagonGrid.FlagCell(const AIndex: Integer);
@@ -281,7 +283,7 @@ begin
 end;
 
 function THexagonGrid.CheckWin: Boolean;
-var 
+var
   I: Integer;
 begin
   Result := True;
@@ -291,3 +293,4 @@ begin
 end;
 
 end.
+
