@@ -21,7 +21,6 @@ object Form31: TForm31
     Size.Width = 630.000000000000000000
     Size.Height = 504.000000000000000000
     Size.PlatformDefault = False
-    OnClick = SkPaintBox1Click
     OnDblClick = SkPaintBox1DblClick
     OnMouseDown = SkPaintBox1MouseDown
     OnMouseMove = SkPaintBox1MouseMove

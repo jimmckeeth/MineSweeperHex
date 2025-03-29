@@ -21,7 +21,6 @@ type
       Shift: TShiftState; X, Y: Single);
     procedure SkPaintBox1MouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
-    procedure SkPaintBox1Click(Sender: TObject);
     procedure CalculateCellSize;
     procedure SkPaintBox1DblClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -137,11 +136,6 @@ begin
   end;
 end;
 
-procedure TForm31.SkPaintBox1Click(Sender: TObject);
-begin
-  //
-end;
-
 procedure TForm31.SkPaintBox1DblClick(Sender: TObject);
 begin
   if FGameOver then
@@ -196,13 +190,12 @@ begin
             RevealAllMines;
             FGameOver := True;
             SkPaintBox1.Redraw;
-            ShowMessage('Game Over!');
           end
           else if FHexGrid.CheckWin then
           begin
+            RevealAllMines;
             FGameOver := True;
             SkPaintBox1.Redraw;
-            ShowMessage('You Win!');
           end;
         end;
       TMouseButton.mbRight:
@@ -231,6 +224,7 @@ begin
   FGameOver := False;
   FPressing := False;
   FHexGrid := THexagonGrid.Create(GRID_SIZE);
+  FHexGrid.MineCount := Grid_size * Grid_Size div 6;
   CalculateCellSize;
   SkPaintBox1.Redraw;
 end;

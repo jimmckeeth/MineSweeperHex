@@ -4,10 +4,10 @@
         <AppType>Application</AppType>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <FrameworkType>FMX</FrameworkType>
-        <MainSource>MineSweeperS4D.dpr</MainSource>
+        <MainSource>MineSweeperHex.dpr</MainSource>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <ProjectGuid>{79F96638-0DCD-42E6-A434-7946344C1359}</ProjectGuid>
-        <ProjectName Condition="'$(ProjectName)'==''">MineSweeperS4D</ProjectName>
+        <ProjectName Condition="'$(ProjectName)'==''">MineSweeperHex</ProjectName>
         <ProjectVersion>20.3</ProjectVersion>
         <TargetedPlatforms>693395</TargetedPlatforms>
     </PropertyGroup>
@@ -94,7 +94,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <SanitizedProjectName>MineSweeperS4D</SanitizedProjectName>
+        <SanitizedProjectName>MineSweeperHex</SanitizedProjectName>
         <AUP_ACCESS_COARSE_LOCATION>true</AUP_ACCESS_COARSE_LOCATION>
         <AUP_ACCESS_FINE_LOCATION>true</AUP_ACCESS_FINE_LOCATION>
         <AUP_CALL_PHONE>true</AUP_CALL_PHONE>
@@ -320,7 +320,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">MineSweeperS4D.dpr</Source>
+                    <Source Name="MainSource">MineSweeperHex.dpr</Source>
                 </Source>
             </Delphi.Personality>
             <Platforms>

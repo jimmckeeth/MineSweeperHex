@@ -3,7 +3,7 @@ unit HexagonGrid;
 interface
 
 uses
-  System.Types, System.Math, System.UITypes;
+  System.Types, System.Math, System.UITypes, System.Generics.Collections;
 
 type
   THexagonInfo = record
@@ -37,11 +37,12 @@ type
     function RevealCell(const AIndex: Integer): Boolean; // Returns True if mine hit
     procedure FlagCell(const AIndex: Integer);
     function CheckWin: Boolean;
+    property GridSize: Integer read FGridSize;
     property CellSize: Single read FCellSize;
     property XOffset: Single read FXOffset;
     property YOffset: Single read FYOffset;
     property Hexagons: THexagonInfoArray read FHexagons;
-    property MineCount: Integer read FMineCount;
+    property MineCount: Integer read FMineCount write FMineCount;
   end;
 
 implementation
@@ -70,7 +71,7 @@ constructor THexagonGrid.Create(const AGridSize: Integer);
 begin
   inherited Create;
   FGridSize := AGridSize;
-  FMineCount := (AGridSize * AGridSize) div 6; // About 17% mines
+  FMineCount := (AGridSize * AGridSize) div 6;
   FFirstClick := True;
   SetLength(FHexagons, AGridSize * AGridSize);
 end;
@@ -187,28 +188,42 @@ end;
 procedure THexagonGrid.PlaceMines(const AFirstClickIndex: Integer);
 var
   AvailableCells: TArray<Integer>;
+  ExcludedIndices: TArray<Integer>;
   I, RandIndex, CellIndex: Integer;
   Neighbors: TArray<Integer>;
 begin
-  SetLength(AvailableCells, Length(FHexagons));
-  for I := 0 to High(FHexagons) do
-    AvailableCells[I] := I;
-    
-  // Remove first click and its neighbors from available cells
+  // First, ensure the clicked cell and its neighbors aren't mines
+  FHexagons[AFirstClickIndex].HasMine := False;
   Neighbors := GetNeighbors(AFirstClickIndex);
-  for I := High(Neighbors) downto 0 do
-    Delete(AvailableCells, Neighbors[I], 1);
-  Delete(AvailableCells, AFirstClickIndex, 1);
-  
-  // Place mines randomly
+  for I := 0 to High(Neighbors) do
+    FHexagons[Neighbors[I]].HasMine := False;
+
+  // Create list of cells to exclude
+  ExcludedIndices := Neighbors + [AFirstClickIndex];
+  TArray.Sort<Integer>(ExcludedIndices);
+
+  // Initialize available cells excluding protected ones
+  SetLength(AvailableCells, Length(FHexagons) - Length(ExcludedIndices));
+  CellIndex := 0;
+  for I := 0 to High(FHexagons) do
+    if not TArray.BinarySearch<Integer>(ExcludedIndices, I, RandIndex) then
+    begin
+      AvailableCells[CellIndex] := I;
+      Inc(CellIndex);
+    end;
+    
+  // Place mines randomly in remaining cells
   for I := 1 to FMineCount do
   begin
+    if Length(AvailableCells) = 1 then
+       Break;  // Safety check in case we run out of available cells
+            
     RandIndex := Random(Length(AvailableCells));
     CellIndex := AvailableCells[RandIndex];
     FHexagons[CellIndex].HasMine := True;
     Delete(AvailableCells, RandIndex, 1);
   end;
-  
+    
   CalculateNearbyMines;
 end;
 
@@ -242,11 +257,11 @@ begin
     PlaceMines(AIndex);
   end;
 
-  Result := FHexagons[AIndex].HasMine;
   if not FHexagons[AIndex].IsFlagged then
   begin
+    Result := FHexagons[AIndex].HasMine;
     FHexagons[AIndex].IsRevealed := True;
-    
+
     // Auto-reveal neighbors if no nearby mines
     if (not Result) and (FHexagons[AIndex].NearbyMines = 0) then
     begin
@@ -255,7 +270,8 @@ begin
         if not FHexagons[Neighbors[I]].IsRevealed then
           RevealCell(Neighbors[I]);
     end;
-  end;
+  end
+    else Result := False;
 end;
 
 procedure THexagonGrid.FlagCell(const AIndex: Integer);

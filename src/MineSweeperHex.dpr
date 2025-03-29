@@ -1,4 +1,4 @@
-﻿program MineSweeperS4D;
+﻿program MineSweeperHex;
 
 uses
   System.StartUpCopy,
