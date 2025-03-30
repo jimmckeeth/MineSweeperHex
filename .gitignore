@@ -68,5 +68,9 @@ __recovery/
 # Boss dependency manager vendor folder https://github.com/HashLoad/boss
 modules/
 *.delphilsp.json
-*/.vscode/settings.json
 *.res
+*/GTAGS
+*/GRTAGS
+*/GPATH
+*/.vscode
+/.vscode

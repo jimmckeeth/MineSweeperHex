@@ -3,7 +3,7 @@ unit HexagonGrid;
 interface
 
 uses
-  System.Types, System.Math, System.UITypes, System.Generics.Collections;
+	System.Types, System.Math, System.UITypes, System.Generics.Collections,  System.Skia;
 
 type
   THexagonInfo = record
@@ -13,7 +13,9 @@ type
     HasMine: Boolean;
     IsRevealed: Boolean;
     IsFlagged: Boolean;
-    NearbyMines: Integer;
+		NearbyMines: Integer;
+		Path: ISkPath;
+    Size: Single;
     procedure CalculatePoints(const ACellSize: Single);
   end;
   THexagonInfoArray = array of THexagonInfo;
@@ -52,14 +54,12 @@ implementation
 
 { THexagonInfo }
 
-uses
-  System.Skia;
-
 procedure THexagonInfo.CalculatePoints(const ACellSize: Single);
 var
   I: Integer;
   Angle: Single;
 begin
+  Self.Size := ACellSize;
   for I := 0 to 5 do
   begin
     Angle := I * 60 * Pi / 180;
@@ -122,21 +122,23 @@ end;
 
 function THexagonGrid.FindHexagonAt(const X, Y: Single): Integer;
 var
-  I: Integer;
-  Path: ISkPath;
-  PathBuilder: ISkPathBuilder;
+	I: Integer;
+	PathBuilder: ISkPathBuilder;
 begin
-  Result := -1;
-  for I := 0 to Length(FHexagons) - 1 do
-  begin
-    PathBuilder := TSkPathBuilder.Create;
-    PathBuilder.MoveTo(FHexagons[I].Points[0].X, FHexagons[I].Points[0].Y);
-    for var J := 1 to 5 do
-      PathBuilder.LineTo(FHexagons[I].Points[J].X, FHexagons[I].Points[J].Y);
-    PathBuilder.Close;
-    Path := PathBuilder.Detach;
+	Result := -1;
+	for I := 0 to High(FHexagons) do
+	begin
+		if not assigned(FHexagons[i].Path) then
+		begin
+			PathBuilder := TSkPathBuilder.Create;
+			PathBuilder.MoveTo(FHexagons[I].Points[0].X, FHexagons[I].Points[0].Y);
+			for var J := 1 to 5 do
+				PathBuilder.LineTo(FHexagons[I].Points[J].X, FHexagons[I].Points[J].Y);
+			PathBuilder.Close;
+			FHexagons[i].Path := PathBuilder.Detach;
+		end;
 
-    if Path.Contains(X, Y) then
+		if FHexagons[i].Path.Contains(X, Y) then
       Exit(I);
   end;
 end;
@@ -203,7 +205,7 @@ var
   I, RandIndex, CellIndex: Integer;
   Neighbors: TArray<Integer>;
 begin
-  // First, ensure the clicked cell and its neighbors aren't mines
+  // First, be sure the clicked cell and its neighbors aren't mines
   FHexagons[AFirstClickIndex].HasMine := False;
   Neighbors := GetNeighbors(AFirstClickIndex);
   for I := 0 to High(Neighbors) do
