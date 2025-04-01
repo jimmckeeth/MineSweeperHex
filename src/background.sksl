@@ -91,11 +91,11 @@ vec4 main( in vec2 fragCoord )
 	float disPointToCircle=abs(distanceToCenter-radius);
 							
 	//Draw Circle
-	if (disPointToCircle<circleWitdh)
-	{
-		green= 1.0-(disPointToCircle/circleWitdh);
-	}
-	
+	// if (disPointToCircle<circleWitdh)
+	// {
+		// green= 1.0-(disPointToCircle/circleWitdh);
+	// }
+ 
 	//Rotate Line
 	float angle = (-iTime*1.2);
 	lineEnd = rotatePoint(center,angle,lineEnd);

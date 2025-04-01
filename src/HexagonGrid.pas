@@ -38,7 +38,6 @@ type
     procedure UpdateSize(const AWidth, AHeight: Single);
     function FindHexagonAt(const X, Y: Single): Integer;
     function RevealCell(const AIndex: Integer): Boolean;
-      // Returns True if mine hit
     procedure FlagCell(const AIndex: Integer);
     function CheckWin: Boolean;
     property GridSize: Integer read FGridSize;
@@ -81,26 +80,35 @@ end;
 
 procedure THexagonGrid.CalculateHexagons;
 var
-  X, Y: Integer;
-  Index: Integer;
+	X, Y: Integer;
+	Index: Integer;
+	PathBuilder: ISkPathBuilder;
 begin
-  Index := 0;
-  for Y := 0 to FGridSize - 1 do
-    for X := 0 to FGridSize - 1 do
-    begin
-      if (X mod 2 = 1) and (Y >= FGridSize - 1) then
-        Continue;
+	Index := 0;
+	for Y := 0 to FGridSize - 1 do
+		for X := 0 to FGridSize - 1 do
+		begin
+			if (X mod 2 = 1) and (Y >= FGridSize - 1) then
+				Continue;
 
-      FHexagons[Index].Column := X;
-      FHexagons[Index].Row := Y;
-      FHexagons[Index].Center.X := X * FCellSize * 1.5 + FXOffset;
-      FHexagons[Index].Center.Y := Y * FCellSize * Sqrt(3) + FYOffset + FCellSize
-        * Sqrt(3) / 2;
-      if X mod 2 = 1 then
-        FHexagons[Index].Center.Y := FHexagons[Index].Center.Y + FCellSize *
-          Sqrt(3) / 2;
+			FHexagons[Index].Column := X;
+			FHexagons[Index].Row := Y;
+			FHexagons[Index].Center.X := X * FCellSize * 1.5 + FXOffset;
+			FHexagons[Index].Center.Y := Y * FCellSize * Sqrt(3) + FYOffset + FCellSize
+				* Sqrt(3) / 2;
+			if X mod 2 = 1 then
+				FHexagons[Index].Center.Y := FHexagons[Index].Center.Y + FCellSize *
+					Sqrt(3) / 2;
 
-      FHexagons[Index].CalculatePoints(FCellSize);
+			FHexagons[Index].CalculatePoints(FCellSize);
+
+			PathBuilder := TSkPathBuilder.Create;
+			PathBuilder.MoveTo(FHexagons[Index].Points[0].X, FHexagons[Index].Points[0].Y);
+			for var J := 1 to 5 do
+				PathBuilder.LineTo(FHexagons[Index].Points[J].X, FHexagons[Index].Points[J].Y);
+			PathBuilder.Close;
+			FHexagons[Index].Path := PathBuilder.Detach;
+
       Inc(Index);
     end;
   SetLength(FHexagons, Index);
@@ -123,21 +131,10 @@ end;
 function THexagonGrid.FindHexagonAt(const X, Y: Single): Integer;
 var
 	I: Integer;
-	PathBuilder: ISkPathBuilder;
 begin
 	Result := -1;
 	for I := 0 to High(FHexagons) do
 	begin
-		if not assigned(FHexagons[i].Path) then
-		begin
-			PathBuilder := TSkPathBuilder.Create;
-			PathBuilder.MoveTo(FHexagons[I].Points[0].X, FHexagons[I].Points[0].Y);
-			for var J := 1 to 5 do
-				PathBuilder.LineTo(FHexagons[I].Points[J].X, FHexagons[I].Points[J].Y);
-			PathBuilder.Close;
-			FHexagons[i].Path := PathBuilder.Detach;
-		end;
-
 		if FHexagons[i].Path.Contains(X, Y) then
       Exit(I);
   end;

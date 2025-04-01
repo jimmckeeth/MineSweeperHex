@@ -6,7 +6,8 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, System.Math,
   System.Skia, FMX.Skia, System.UIConsts, HexagonGrid,
-  FMX.Controls.Presentation, FMX.StdCtrls;
+  FMX.Controls.Presentation, FMX.StdCtrls, FMX.Ani, FMX.Objects,
+  FMX.Layouts, FMX.ListBox;
 
 type
   TForm31 = class(TForm)
@@ -35,20 +36,24 @@ type
       const AProgress: Double; const AOpacity: Single);
 
   private
-    const
-      GRID_SIZE = 11;
-    procedure RunShader;
-    var
-    FHexGrid: THexagonGrid;
-    FHotHexIndex: Integer;
-    FGameOver: Boolean;
-    FPressing: Boolean;
-    FShaderBuilder: ISkRuntimeShaderBuilder;
-    FPaint: ISkPaint;
-    procedure DrawHexagon(const ACanvas: ISkCanvas; const AHexInfo: THexagonInfo);
-    procedure RevealAllMines;
-    procedure RestartGame;
-  public
+		const
+			GRID_SIZE = 13;
+		var
+		FillPaint, StrokePaint: ISkPaint;
+		TextPaint: ISkPaint;
+		Font: ISkFont;
+
+		FHexGrid: THexagonGrid;
+		FHotHexIndex: Integer;
+		FGameOver: Boolean;
+		FPressing: Boolean;
+		FShaderBuilder: ISkRuntimeShaderBuilder;
+		FPaint: ISkPaint;
+		procedure DrawHexagon(const ACanvas: ISkCanvas; const AHexInfo: THexagonInfo);
+		procedure RevealAllMines;
+		procedure RestartGame;
+		procedure RunShader;
+	public
     { Public declarations }
   end;
 
@@ -62,93 +67,86 @@ implementation
 uses
   IOUtils;
 
-procedure TForm31.FormCreate(Sender: TObject);
-begin
-  SkAnimatedPaintBox1.Animation.Duration := MaxSingle;
-  RunShader;
-
-  RestartGame;
-  CalculateCellSize;
-end;
-
 procedure TForm31.RunShader;
 var
-  LEffect: ISkRuntimeEffect;
+	LEffect: ISkRuntimeEffect;
 begin
-  SkAnimatedPaintBox1.Animation.StopAtCurrent;
-  FShaderBuilder := nil;
-  FPaint := nil;
-  var AErrorText := '';
-  LEffect := TSkRuntimeEffect.MakeForShader(
-    TFile.ReadAllText('..\..\background.sksl'), AErrorText);
-  if AErrorText <> '' then
-    raise Exception.Create(AErrorText);
+	SkAnimatedPaintBox1.Animation.StopAtCurrent;
+	FShaderBuilder := nil;
+	FPaint := nil;
+	var AErrorText := '';
+	LEffect := TSkRuntimeEffect.MakeForShader(
+		TFile.ReadAllText('..\..\background.sksl'), AErrorText);
+	if AErrorText <> '' then
+		raise Exception.Create(AErrorText);
 
-  FShaderBuilder := TSkRuntimeShaderBuilder.Create(LEffect);
-  FPaint := TSkPaint.Create;
-  FPaint.Shader := FShaderBuilder.MakeShader;
-  SkAnimatedPaintBox1.Animation.Start;
+	FShaderBuilder := TSkRuntimeShaderBuilder.Create(LEffect);
+	FPaint := TSkPaint.Create;
+	FPaint.Shader := FShaderBuilder.MakeShader;
+	SkAnimatedPaintBox1.Animation.Start;
 end;
 
 procedure TForm31.FormDestroy(Sender: TObject);
 begin
-  FHexGrid.Free;
+	FHexGrid.Free;
 end;
 
 procedure TForm31.FormShow(Sender: TObject);
 begin
-  SkPaintBox1.Redraw;
+	SkPaintBox1.Redraw;
+end;
+
+procedure TForm31.FormCreate(Sender: TObject);
+begin
+	FillPaint := TSkPaint.Create;
+ 	FillPaint.Alpha := 128;
+	FillPaint.Style := TSkPaintStyle.Fill;
+
+	StrokePaint := TSkPaint.Create;
+	StrokePaint.Color := TAlphaColors.White;
+	StrokePaint.Style := TSkPaintStyle.Stroke;
+	StrokePaint.StrokeWidth := 1;
+
+	TextPaint := TSkPaint.Create;
+	TextPaint.Color := TAlphaColors.Orange;
+	Font := TSkFont.Create(nil, 14);
+
+	SkAnimatedPaintBox1.Animation.Duration := MaxSingle;
+	RunShader;
+
+	RestartGame;
+	CalculateCellSize;
 end;
 
 procedure TForm31.DrawHexagon(const ACanvas: ISkCanvas; const AHexInfo: THexagonInfo);
 var
-  PathBuilder: ISkPathBuilder;
-  Path: ISkPath;
-  Paint: ISkPaint;
-  TextPaint: ISkPaint;
-  Text: string;
-  Font: ISkFont;
+	Path: ISkPath;
+	Text: string;
 begin
-  PathBuilder := TSkPathBuilder.Create;
-  PathBuilder.MoveTo(AHexInfo.Points[0].X, AHexInfo.Points[0].Y);
-  for var I := 1 to 5 do
-    PathBuilder.LineTo(AHexInfo.Points[I].X, AHexInfo.Points[I].Y);
-  PathBuilder.Close;
-  Path := PathBuilder.Detach;
+	Path := AHexInfo.Path;
 
-  Paint := TSkPaint.Create;
-  if AHexInfo.IsRevealed then
-  begin
-    if AHexInfo.HasMine then
-      Paint.Color := TAlphaColors.Red
-    else
-      Paint.Color := TAlphaColors.Lightgray
-  end
-  else if (FHotHexIndex >= 0) and (AHexInfo.Column = FHexGrid.Hexagons[FHotHexIndex].Column) and
-          (AHexInfo.Row = FHexGrid.Hexagons[FHotHexIndex].Row) then
-  begin
-    if FPressing then
-      Paint.Color := TAlphaColors.Blueviolet
-    else
-      Paint.Color := TAlphaColors.Yellow
-  end
-  else
-    Paint.Color := TAlphaColors.Null;
-  Paint.Alpha := 128;
+	if AHexInfo.IsRevealed then
+	begin
+		if AHexInfo.HasMine then
+			FillPaint.Color := TAlphaColors.Red
+		else
+			FillPaint.Color := TAlphaColors.Lightgray
+	end
+	else if (FHotHexIndex >= 0) and (AHexInfo.Column = FHexGrid.Hexagons[FHotHexIndex].Column) and
+					(AHexInfo.Row = FHexGrid.Hexagons[FHotHexIndex].Row) then
+	begin
+		if FPressing then
+			FillPaint.Color := TAlphaColors.Blueviolet
+		else
+			FillPaint.Color := TAlphaColors.Yellow
+	end
+	else
+		FillPaint.Color := TAlphaColors.Null;
 
-  Paint.Style := TSkPaintStyle.Fill;
-  ACanvas.DrawPath(Path, Paint);
-
-  Paint := TSkPaint.Create;
-  Paint.Color := TAlphaColors.White;
-  Paint.Style := TSkPaintStyle.Stroke;
-  Paint.StrokeWidth := 1;
-  ACanvas.DrawPath(Path, Paint);
-
-  if AHexInfo.IsFlagged then
-  begin
-    Text := 'F';
-    aniFlag.Visible := True;
+	if AHexInfo.IsFlagged then
+	begin
+		Text := 'F';
+		aniFlag.Visible := True;
 		aniFlag.Height := AHexInfo.Size;
 		aniFlag.Width := AHexInfo.Size;
 
@@ -167,26 +165,25 @@ begin
 			svgBomb.Position.Y := AHexInfo.Center.Y + AHexInfo.Size / 2;
 		end
 		else if AHexInfo.NearbyMines > 0 then
-      Text := AHexInfo.NearbyMines.ToString
-    else
-      Text := '';
-  end
-  else
-    Text := '';
+			Text := AHexInfo.NearbyMines.ToString
+		else
+			Text := '';
+	end
+	else
+		Text := '';
 
-  if Text <> '' then
-  begin
-    TextPaint := TSkPaint.Create;
-    TextPaint.Color := TAlphaColors.Orange;
-    Font := TSkFont.Create(nil, 14);
-    var TextWidth := Font.MeasureText(Text, TextPaint);
-    var TextBounds: TRectF;
-    Font.MeasureText(Text, TextBounds, TextPaint);
-    ACanvas.DrawSimpleText(Text,
-      AHexInfo.Center.X - TextWidth/2,
-      AHexInfo.Center.Y + TextBounds.Height/2,
-      Font, TextPaint);
-  end;
+	ACanvas.DrawPath(Path, FillPaint);
+	ACanvas.DrawPath(Path, StrokePaint);
+	if Text <> '' then
+	begin
+		var TextWidth := Font.MeasureText(Text, TextPaint);
+		var TextBounds: TRectF;
+		Font.MeasureText(Text, TextBounds, TextPaint);
+		ACanvas.DrawSimpleText(Text,
+			AHexInfo.Center.X - TextWidth/2,
+			AHexInfo.Center.Y + TextBounds.Height/2,
+			Font, TextPaint);
+	end;
 end;
 
 procedure TForm31.SkAnimatedPaintBox1AnimationDraw(ASender: TObject;
@@ -221,8 +218,8 @@ procedure TForm31.SkPaintBox1Draw(ASender: TObject; const ACanvas: ISkCanvas;
 var
   I: Integer;
 begin
-  ACanvas.Clear(TAlphaColors.Null);
-  for I := 0 to Length(FHexGrid.Hexagons) - 1 do
+	ACanvas.Clear(TAlphaColors.Null);
+	for I := 0 to Length(FHexGrid.Hexagons) - 1 do
 		DrawHexagon(ACanvas, FHexGrid.Hexagons[I]);
   SkAnimatedPaintBox1.Redraw;
 end;
@@ -230,7 +227,7 @@ end;
 procedure TForm31.SkPaintBox1MouseDown(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 begin
-  if not FPressing then
+	if not FPressing then
   begin
     FPressing := True;
     SkPaintBox1.Redraw;
@@ -241,12 +238,12 @@ procedure TForm31.SkPaintBox1MouseMove(Sender: TObject; Shift: TShiftState; X, Y
 var
   NewIndex: Integer;
 begin
-  NewIndex := FHexGrid.FindHexagonAt(X, Y);
-  if NewIndex <> FHotHexIndex then
-  begin
-    FHotHexIndex := NewIndex;
-    FPressing := False;
-    SkPaintBox1.Redraw;
+	NewIndex := FHexGrid.FindHexagonAt(X, Y);
+	if NewIndex <> FHotHexIndex then
+	begin
+		FHotHexIndex := NewIndex;
+		FPressing := False;
+		SkPaintBox1.Redraw;
   end;
 end;
 

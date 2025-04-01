@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="sweep" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00ff00;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#00ff00;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Circle outline -->
+  <circle cx="50" cy="50" r="45" 
+          stroke="#00ff00" 
+          stroke-width="2" 
+          fill="none" 
+          opacity="0.3"/>
+  
+  <!-- Rotating sweep -->
+  <path d="M50,50 L50,5 A45,45 0 0,1 95,50 z" 
+        fill="url(#sweep)">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      from="0 50 50"
+      to="360 50 50"
+      dur="4s"
+      repeatCount="indefinite"/>
+  </path>
+</svg>
