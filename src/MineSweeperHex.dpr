@@ -10,7 +10,9 @@ uses
 {$R *.res}
 
 begin
-  GlobalUseSkia := True;
+	GlobalUseSkia := True;
+	GlobalSkiaBitmapsInParallel := True;
+	//GlobalUseSkiaRasterWhenAvailable := False;
   Application.Initialize;
   Application.CreateForm(TForm31, Form31);
   Application.Run;
